@@ -23,10 +23,10 @@ driverClass: io.openmessaging.benchmark.driver.pravega.PravegaBenchmarkDriver
 
 # Pravega client-specific configuration
 client:
-  controllerURI: tcp://localhost:9090
+  controllerURI: tcp://pravega-pravega-controller:9090
   scopeName: examples
 
 writer:
-  enableConnectionPooling: True
+  enableConnectionPooling: False
 
 includeTimestampInEvent: False

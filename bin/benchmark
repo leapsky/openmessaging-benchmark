@@ -24,7 +24,8 @@ else
     CLASSPATH=benchmark-framework/target/classes:`cat benchmark-framework/target/classpath.txt`
 fi
 
-JVM_MEM="-Xms2G -Xmx2G -XX:+UseG1GC -agentpath:/opt/perf-tools/jprofiler9/bin/linux-x64/libjprofilerti.so=port=8849,nowait"
+JVM_MEM="-Xms2G -Xmx2G -XX:+UseG1GC -XX:+UnlockDiagnosticVMOptions -XX:+DebugNonSafepoints"
+#JVM_MEM="-Xms2G -Xmx2G -XX:+UseG1GC -agentpath:/opt/perf-tools/jprofiler9/bin/linux-x64/libjprofilerti.so=port=8849,nowait"
 JVM_GC_LOG=" -XX:+PrintGCDetails -XX:+PrintGCApplicationStoppedTime  -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=5 -XX:GCLogFileSize=64m  -Xloggc:/dev/shm/benchmark-client-gc_%p.log"
 
 java -server -cp $CLASSPATH $JVM_MEM io.openmessaging.benchmark.Benchmark $*

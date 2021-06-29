@@ -54,7 +54,8 @@ public class PravegaBenchmarkDriver implements BenchmarkDriver {
     private String scopeName;
     private StreamManager streamManager;
     private ReaderGroupManager readerGroupManager;
-    private EventStreamClientFactory clientFactory;
+    private EventStreamClientFactory producerClientFactory;
+    private EventStreamClientFactory consumerClientFactory;
     private final List<String> createdTopics = new ArrayList<>();
 
     @Override
@@ -66,7 +67,8 @@ public class PravegaBenchmarkDriver implements BenchmarkDriver {
         scopeName = config.client.scopeName;
         streamManager = StreamManager.create(clientConfig);
         readerGroupManager = ReaderGroupManager.withScope(scopeName, clientConfig);
-        clientFactory = EventStreamClientFactory.withScope(scopeName, clientConfig);
+        producerClientFactory = EventStreamClientFactory.withScope(scopeName, clientConfig);
+        consumerClientFactory = EventStreamClientFactory.withScope(scopeName, clientConfig);
     }
 
     private static final ObjectMapper mapper = new ObjectMapper(new YAMLFactory())
@@ -117,10 +119,10 @@ public class PravegaBenchmarkDriver implements BenchmarkDriver {
         topic = cleanName(topic);
         BenchmarkProducer producer = null;
         if (config.enableTransaction) {
-            producer = new PravegaBenchmarkTransactionProducer(topic, clientFactory, config.includeTimestampInEvent,
+            producer = new PravegaBenchmarkTransactionProducer(topic, producerClientFactory, config.includeTimestampInEvent,
                     config.writer.enableConnectionPooling, config.eventsPerTransaction);
         } else {
-            producer = new PravegaBenchmarkProducer(topic, clientFactory, config.includeTimestampInEvent,
+            producer = new PravegaBenchmarkProducer(topic, producerClientFactory, config.includeTimestampInEvent,
                     config.writer.enableConnectionPooling);
         }
         return CompletableFuture.completedFuture(producer);
@@ -132,7 +134,7 @@ public class PravegaBenchmarkDriver implements BenchmarkDriver {
         topic = cleanName(topic);
         subscriptionName = cleanName(subscriptionName);
         BenchmarkConsumer consumer = new PravegaBenchmarkConsumer(topic, scopeName, subscriptionName, consumerCallback,
-                clientFactory, readerGroupManager, config.includeTimestampInEvent);
+                consumerClientFactory, readerGroupManager, config.includeTimestampInEvent);
         return CompletableFuture.completedFuture(consumer);
     }
 
@@ -151,8 +153,11 @@ public class PravegaBenchmarkDriver implements BenchmarkDriver {
     @Override
     public void close() throws Exception {
         log.info("close: clientConfig={}", clientConfig);
-        if (clientFactory != null) {
-            clientFactory.close();
+        if (producerClientFactory != null) {
+            producerClientFactory.close();
+        }
+        if (consumerClientFactory != null) {
+            consumerClientFactory.close();
         }
         if (readerGroupManager != null) {
             readerGroupManager.close();
